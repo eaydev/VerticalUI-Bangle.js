@@ -1,7 +1,11 @@
 // This program gets the parameter for arm swing. Whereby, the z and y data usually represent a sin wave.
-// The arm has a cyclical motion when walking without holding things and what not.
+// The arm has a cyclical motion when walking normally.
+// This aims to discover threshold characteristic y and z values for arm movement during walks.
+// This should get more accuarte the bigger the data sample.
+const fs = require('fs')
+const { promisify } = require('util')
+const readFile = promisify(fs.readFile);
 
-let data = require('./data.js');
 
 function getMean(arr){
   let sum = 0;
@@ -90,10 +94,6 @@ function getPeakData(arr){
   });
 }
 
-
-let yData = getPeakData(data.y);
-let zData = getPeakData(data.z);
-
 function getParameterData(data){
   let peakUpperLimit;
   let peakLowerLimit;
@@ -136,6 +136,41 @@ function getParameterData(data){
     troughDownMagLowerLimit: troughDownMagLowerLimit
   }
 }
+let data = {
+  y: [],
+  z: []
+}
 
-console.log(getParameterData(yData));
-console.log(getParameterData(zData));
+//Getting data from CSV
+readFile("walkdata.csv", "utf8")
+  .then(res =>{
+    let rows = res.split("\r\n");
+    for(let i = 0; i < rows.length; i++){
+      if(i === 0){continue};
+      let col = rows[i].split(",");
+      data.y.push(Number(col[0]));
+      data.z.push(Number(col[1]));
+    }
+  })
+  .then(()=>{
+    //Arranging data derived from CSV
+    let yData = getPeakData(data.y);
+    let zData = getPeakData(data.z);
+
+    const walkingParameterObj = {
+      y: getParameterData(yData),
+      z: getParameterData(zData)
+    }
+    console.log(walkingParameterObj);
+
+    const walkingParameters = JSON.stringify(walkingParameterObj);
+
+    // fs.writeFile('./walkPrm.json', walkingParameters, err => {
+    //     if (err) {
+    //         console.log('Error writing file', err)
+    //     } else {
+    //         console.log('Successfully wrote file')
+    //     }
+    // })
+  })
+  .catch(err =>{console.log(err)})

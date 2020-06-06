@@ -4,7 +4,13 @@
 let yArray = [];
 let zArray = [];
 
-let yPeaks = 0;
+let yPeak = 0;
+let zPeak = 0;
+let yTrough = 0;
+let zTrough = 0;
+
+const params = require("Storage").readJSON("walkPrm.json", true);
+console.log(params);
 
 Bangle.on('accel', function(obj) {
   //Reduce to less.
@@ -18,41 +24,46 @@ Bangle.on('accel', function(obj) {
   //Push new value.
   yArray.push(obj.y);
   zArray.push(obj.z);
-
+  //For Y.
   if (yArray.length === 5){
-    //Check if in range.
-    if(yArray[2] <= 0.7108902236568493 && yArray[2] >= 0.47694005642250525){
-      //Check peak or trough
+    if(yArray[2] <= params.y.peakUpperLimit && yArray[2] >= params.y.peakLowerLimit){
+      //Checking if in range for a peak
       if(yArray[2] > yArray[0] && yArray[2] > yArray[1] && yArray[2] > yArray[3] && yArray[2] > yArray[4]){
-        //Peak
-        if((yArray[2] - yArray[0]) <= 0.12574216557990817 && (yArray[2] - yArray[0]) >= 0.011984187657511199 && (yArray[2] - yArray[4]) <= 0.1749380378851586 && (yArray[2] - yArray[4]) >= 0.028091936392260722){
+        //Peak - now checking for magnitude
+        if((yArray[2] - yArray[0]) <= params.y.peakUpMagUpperLimit && (yArray[2] - yArray[0]) >= params.y.peakUpMagLowerLimit && (yArray[2] - yArray[4]) <= params.y.peakDownMagUpperLimit && (yArray[2] - yArray[4]) >= params.y.peakDownMagLowerLimit){
           console.log("Y Peak with amplitude found.");
-          yPeaks++;
         }
-        //Check for validity with regards to peak amplitude.
-      } else if(yArray[2] < yArray[0] && yArray[2] < yArray[1] && yArray[2] < yArray[3] && yArray[2] < yArray[4]){
-        //Trough
-        //Check for validity with regards to Trough amplitude.
+      }
+    } else if(yArray[2] <= params.y.troughUpperLimit && yArray[2] >= params.y.troughLowerLimit){
+      //Checking if in range for a Trough
+      if(yArray[2] < yArray[0] && yArray[2] < yArray[1] && yArray[2] < yArray[3] && yArray[2] < yArray[4]){
+        //Trough - now checking for magnitude
+        if((yArray[0] - yArray[2]) <= params.y.troughUpMagUpperLimit && (yArray[0] - yArray[2]) >= params.y.troughUpMagLowerLimit && (yArray[4] - yArray[2]) <= params.y.troughDownMagUpperLimit && (yArray[4] - yArray[2]) >= params.y.troughDownMagLowerLimit){
+          console.log("Y Trough with amplitude found.");
+        }
       }
     }
   }
 
   if (zArray.length === 5){
-    //Check if in range.
-    if(zArray[2] <= 0.7108902236568493 && zArray[2] >= 0.47694005642250525){
-      //Check peak or trough
+    if(zArray[2] <= params.z.peakUpperLimit && zArray[2] >=  params.z.peakLowerLimit){
+      //Checking if in range for a peak
       if(zArray[2] > zArray[0] && zArray[2] > zArray[1] && zArray[2] > zArray[3] && zArray[2] > zArray[4]){
-        //Peak
-        //Check for validity with regards to peak amplitude.
-        if((zArray[2] - zArray[0]) <= 0.12859636570638955 && (zArray[2] - zArray[0]) >= 0.006307491064277179 && (zArray[2] - zArray[4]) <= 0.19819792342435652 && (zArray[2] - zArray[4]) >= -0.01978845701902318){
+        //Peak - now checking for magnitude
+        if((zArray[2] - zArray[0]) <= params.z.peakUpMagUpperLimit && (zArray[2] - zArray[0]) >= params.z.peakUpMagLowerLimit && (zArray[2] - zArray[4]) <= params.z. peakDownMagUpperLimit && (zArray[2] - zArray[4]) >= params.z.peakDownMagLowerLimit){
           console.log("Z Peak with amplitude found.");
         }
-      } else if(zArray[2] < zArray[0] && zArray[2] < zArray[1] && zArray[2] < zArray[3] && zArray[2] < zArray[4]){
-        //Trough
-        //Check for validity with regards to Trough amplitude.
+      }
+    } else if(zArray[2] <= params.z.troughUpperLimit && zArray[2] >= params.z.troughLowerLimit){
+      //Checking if in range for a Trough
+      if(zArray[2] < zArray[0] && zArray[2] < zArray[1] && zArray[2] < zArray[3] && zArray[2] < zArray[4]){
+        //Trough - now checking for magnitude
+        if((zArray[0] - zArray[2]) <= params.z.troughUpMagUpperLimit && (zArray[0] - zArray[2]) >= params.z.troughUpMagLowerLimit && (zArray[4] - zArray[2]) <= params.z. troughDownMagUpperLimit && (zArray[4] - zArray[2]) >= params.z.troughDownMagLowerLimit){
+          console.log("Z Trough with amplitude found.");
+        }
       }
     }
   }
 });
 
-setInterval(()=>{console.log(yPeaks*2);}, 2000);
+//setInterval(function(){console.log(`Steps: ${(zPeak+yPeak+zTrough+yTrough)/2}`);},2000);
