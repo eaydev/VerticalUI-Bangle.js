@@ -1,19 +1,7 @@
-//The data that we are trying to use in our pedometer.
+// This program gets the parameter for arm swing. Whereby, the z and y data usually represent a sin wave.
+// The arm has a cyclical motion when walking without holding things and what not.
 
-// We are first of all going to detect peaks and troughs.
-// Then we are going to work out the standard deviation of both.
-// Thus an upper and lower limit for both.
-//
-// Then we have to ensure this magnitude is applicable.
-// We are first of all going to differences between lower points in peaks and troughs.
-// Then we are going to work out the standard deviation of both.
-// Thus an upper and lower limit for both, upper and lower movement in the graph.
-
-// The goal is to create a program that will output everything in one go.
-
-//Essentially in this we are feeding it 'ideal data' and deriving z and y parameters.
-
-let fakeArr = [1, 2, 3, 4, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5];
+let data = require('./data.js');
 
 function getMean(arr){
   let sum = 0;
@@ -40,6 +28,12 @@ function getPeakData(arr){
   let peaks = [];
   let troughs = [];
 
+  let peakUpMag = [];
+  let peakDownMag = [];
+
+  let troughDownMag = [];
+  let troughUpMag = [];
+
   for(let i = 0; i<arr.length; i++){
     let minus2;
     let minus1;
@@ -63,21 +57,84 @@ function getPeakData(arr){
     }
 
     if(minus2 !== undefined && minus1 !== undefined && plus1 !== undefined && plus2 !== undefined ){
-      //Detecting peaks here:
       if(n > minus2 && n > minus1 && n > plus1 && n > plus2){
+        //Detected peak.
         peaks.push(n);
+        //Now we need to figure out the up and down magnitudes. We do this by creating a collection of magnitudes.
+        peakUpMag.push(n - minus2);
+        peakDownMag.push(n - plus2);
+
       } else if(n < minus2 && n < minus1 && n < plus1 && n < plus2){
+        //Detected trough.
         troughs.push(n);
+        //Now we need to figure out the up and down magnitudes.
+        troughUpMag.push(minus2 - n);
+        troughDownMag.push(plus2 - n);
       }
     }
   }
 
-  console.log({
-    peaks: peaks,
-    troughs: troughs,
+  return ({
+    peakMean: getMean(peaks),
     peakSD: getSD(peaks),
-    troughsSD: getSD(troughs)
+    peakUpMean: getMean(peakUpMag),
+    peakDownMean: getMean(peakDownMag),
+    peakUpSD: getSD(peakUpMag),
+    peakDownSD: getSD(peakDownMag),
+    troughMean: getMean(troughs),
+    troughSD: getSD(troughs),
+    troughUpMean: getMean(troughUpMag),
+    troughDownMean: getMean(troughDownMag),
+    troughUpSD: getSD(troughUpMag),
+    troughDownSD: getSD(troughDownMag),
   });
 }
 
-getPeakData(fakeArr);
+
+let yData = getPeakData(data.y);
+let zData = getPeakData(data.z);
+
+function getParameterData(data){
+  let peakUpperLimit;
+  let peakLowerLimit;
+  let troughUpperLimit;
+  let troughLowerLimit;
+  let peakMagUpperLimit;
+  let peakMagLowerLimit;
+  let troughMagUpperLimit;
+  let troughMagLowerLimit;
+
+  peakUpperLimit = data.peakMean + data.peakSD;
+  peakLowerLimit = data.peakMean - data.peakSD;
+  troughUpperLimit = data.troughMean + data.troughSD;
+  troughLowerLimit = data.troughMean - data.troughSD;
+
+  peakUpMagUpperLimit = data.peakUpMean + data.peakUpSD;
+  peakUpMagLowerLimit = data.peakUpMean - data.peakUpSD;
+  peakDownMagUpperLimit = data.peakDownMean + data.peakDownSD;
+  peakDownMagLowerLimit = data.peakDownMean - data.peakDownSD;
+
+  troughUpMagUpperLimit = data.troughUpMean + data.troughUpSD;
+  troughUpMagLowerLimit = data.troughUpMean - data.troughUpSD;
+  troughDownMagUpperLimit = data.troughDownMean + data.troughDownSD;
+  troughDownMagLowerLimit = data.troughDownMean - data.troughDownSD;
+
+  return {
+    peakUpperLimit: peakUpperLimit,
+    peakLowerLimit: peakLowerLimit,
+    troughUpperLimit: troughUpperLimit,
+    troughLowerLimit: troughLowerLimit,
+
+    peakUpMagUpperLimit: peakUpMagUpperLimit,
+    peakUpMagLowerLimit: peakUpMagLowerLimit,
+    peakDownMagUpperLimit: peakDownMagUpperLimit,
+    peakDownMagLowerLimit: peakDownMagLowerLimit,
+
+    troughUpMagUpperLimit: troughUpMagUpperLimit,
+    troughUpMagLowerLimit: troughUpMagLowerLimit,
+    troughDownMagUpperLimit: troughDownMagUpperLimit,
+    troughDownMagLowerLimit: troughDownMagLowerLimit
+  }
+}
+
+console.log(getParameterData(yData));
