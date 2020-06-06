@@ -138,3 +138,4 @@ function getParameterData(data){
 }
 
 console.log(getParameterData(yData));
+console.log(getParameterData(zData));
