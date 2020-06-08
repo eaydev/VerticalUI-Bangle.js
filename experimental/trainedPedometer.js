@@ -10,7 +10,6 @@ let yTrough = 0;
 let zTrough = 0;
 
 const params = require("Storage").readJSON("walkPrm.json", true);
-console.log(params);
 
 Bangle.on('accel', function(obj) {
   //Reduce to less.
