@@ -7,9 +7,7 @@ Bangle.on('accel', function(obj) {
 
   if(walkActive === true){
     let file = s.open(filename, "a");
-    // file.write(`${obj.y},${obj.z},${date.getTime()}\n`);
-    console.log(`${obj.y},${obj.z},${date.getTime()}\n`);
-
+    file.write(`${obj.y},${obj.z},${date.getTime()}\n`);
   }
 });
 
