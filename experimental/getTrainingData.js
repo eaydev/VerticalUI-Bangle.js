@@ -28,9 +28,11 @@ function getSD(arr){
   return Math.sqrt((sumOfDifferences / (arr.length - 1)));
 }
 
-function getPeakData(arr){
+function getPeakData(arr, timeArr){
   let peaks = [];
+  let peakTimeStamp = [];
   let troughs = [];
+  let troughTimeStamp = [];
 
   let peakUpMag = [];
   let peakDownMag = [];
@@ -64,21 +66,43 @@ function getPeakData(arr){
       if(n > minus2 && n > minus1 && n > plus1 && n > plus2){
         //Detected peak.
         peaks.push(n);
+        //Put time timeStamp
+        peakTimeStamp.push(timeArr[i]);
         //Now we need to figure out the up and down magnitudes. We do this by creating a collection of magnitudes.
-        peakUpMag.push(n - minus2);
-        peakDownMag.push(n - plus2);
+        peakUpMag.push(n / minus2);
+        peakDownMag.push(n / plus2);
 
       } else if(n < minus2 && n < minus1 && n < plus1 && n < plus2){
         //Detected trough.
         troughs.push(n);
+        //Put time timeStamp
+        troughTimeStamp.push(timeArr[i]);
         //Now we need to figure out the up and down magnitudes.
-        troughUpMag.push(minus2 - n);
-        troughDownMag.push(plus2 - n);
+        troughUpMag.push(minus2 / n);
+        troughDownMag.push(plus2 / n);
       }
     }
   }
 
+  // Calculate time difference between troughs and peaks.
+  let timeBetweenPeaks = [];
+  let timeBetweenTroughs = [];
+
+  for(let j=0; j<peakTimeStamp.length;j++){
+    if(j === 0){continue};
+    timeBetweenPeaks.push(peakTimeStamp[j] - peakTimeStamp[j-1]);
+  }
+
+  for(let k=0; k<troughTimeStamp.length;k++){
+    if(k === 0){continue};
+    timeBetweenTroughs.push(troughTimeStamp[k] - troughTimeStamp[k-1]);
+  }
+
   return ({
+    timeBetweenPeaksMean: getMean(timeBetweenPeaks),
+    timeBetweenPeaksSD: getSD(timeBetweenPeaks),
+    timeBetweenTroughsMean: getMean(timeBetweenTroughs),
+    timeBetweenTroughsSD: getSD(timeBetweenTroughs),
     peakMean: getMean(peaks),
     peakSD: getSD(peaks),
     peakUpMean: getMean(peakUpMag),
@@ -103,6 +127,11 @@ function getParameterData(data){
   let peakMagLowerLimit;
   let troughMagUpperLimit;
   let troughMagLowerLimit;
+  let timeBetweenPeaksUpperLimit;
+  let timeBetweenPeaksLowerLimit;
+
+  timeBetweenPeaksUpperLimit = data.timeBetweenPeaksMean + data.timeBetweenPeaksSD;
+  timeBetweenPeaksLowerLimit = data.timeBetweenPeaksMean - data.timeBetweenPeaksSD;
 
   peakUpperLimit = data.peakMean + data.peakSD;
   peakLowerLimit = data.peakMean - data.peakSD;
@@ -120,6 +149,9 @@ function getParameterData(data){
   troughDownMagLowerLimit = data.troughDownMean - data.troughDownSD;
 
   return {
+    timeBetweenPeaksUpperLimit : timeBetweenPeaksUpperLimit,
+    timeBetweenPeaksLowerLimit : timeBetweenPeaksLowerLimit,
+
     peakUpperLimit: peakUpperLimit,
     peakLowerLimit: peakLowerLimit,
     troughUpperLimit: troughUpperLimit,
@@ -136,13 +168,16 @@ function getParameterData(data){
     troughDownMagLowerLimit: troughDownMagLowerLimit
   }
 }
+
 let data = {
   y: [],
-  z: []
+  z: [],
+  timeStamps: []
 }
 
 //Getting data from CSV
-readFile("walkdata.csv", "utf8")
+const inputFile = "walkdata3";
+readFile(`${inputFile}.csv`, "utf8")
   .then(res =>{
     let rows = res.split("\r\n");
     for(let i = 0; i < rows.length; i++){
@@ -150,27 +185,28 @@ readFile("walkdata.csv", "utf8")
       let col = rows[i].split(",");
       data.y.push(Number(col[0]));
       data.z.push(Number(col[1]));
+      data.timeStamps.push(Number(col[2]));
     }
   })
   .then(()=>{
     //Arranging data derived from CSV
-    let yData = getPeakData(data.y);
-    let zData = getPeakData(data.z);
+    let yData = getPeakData(data.y, data.timeStamps);
+    let zData = getPeakData(data.z, data.timeStamps);
 
     const walkingParameterObj = {
       y: getParameterData(yData),
       z: getParameterData(zData)
     }
-    console.log(walkingParameterObj);
+    //console.log(walkingParameterObj);
 
     const walkingParameters = JSON.stringify(walkingParameterObj);
 
-    // fs.writeFile('./walkPrm.json', walkingParameters, err => {
-    //     if (err) {
-    //         console.log('Error writing file', err)
-    //     } else {
-    //         console.log('Successfully wrote file')
-    //     }
-    // })
+    fs.writeFile(`walkPrm.json`, walkingParameters, err => {
+        if (err) {
+            console.log('Error writing file', err)
+        } else {
+            console.log('Successfully wrote file')
+        }
+    })
   })
   .catch(err =>{console.log(err)})
