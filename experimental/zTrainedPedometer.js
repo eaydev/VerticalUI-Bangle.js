@@ -3,7 +3,7 @@
 //There is a problem where if the arm is help down it oscillates natural at the range of the walking range. However, we must
 //figure out a way to check of frequency.
 
-// let yArray = [];
+let steps = 0;
 let zArray = [];
 let zPeakArray = [];
 let zTroughArray = [];
@@ -17,33 +17,7 @@ Bangle.on('accel', function(obj) {
   if(zArray.length === 5){
     zArray.shift();
   }
-  // if(yArray.length === 5){
-  //   yArray.shift();
-  // }
-
-  //Push new value.
-  // yArray.push(obj.y);
   zArray.push(obj.z);
-  //For Y.
-  // if (yArray.length === 5){
-  //   if(yArray[2] <= params.y.peakUpperLimit && yArray[2] >= params.y.peakLowerLimit){
-  //     //Checking if in range for a peak
-  //     if(yArray[2] > yArray[0] && yArray[2] > yArray[1] && yArray[2] > yArray[3] && yArray[2] > yArray[4]){
-  //       //Peak - now checking for magnitude
-  //       if((yArray[2] / yArray[0]) <= params.y.peakUpMagUpperLimit && (yArray[2] / yArray[0]) >= params.y.peakUpMagLowerLimit && (yArray[2] / yArray[4]) <= params.y.peakDownMagUpperLimit && (yArray[2] / yArray[4]) >= params.y.peakDownMagLowerLimit){
-  //         console.log("Y Peak with amplitude found.");
-  //       }
-  //     }
-  //   } else if(yArray[2] <= params.y.troughUpperLimit && yArray[2] >= params.y.troughLowerLimit){
-  //     //Checking if in range for a Trough
-  //     if(yArray[2] < yArray[0] && yArray[2] < yArray[1] && yArray[2] < yArray[3] && yArray[2] < yArray[4]){
-  //       //Trough / now checking for magnitude
-  //       if((yArray[0] / yArray[2]) <= params.y.troughUpMagUpperLimit && (yArray[0] / yArray[2]) >= params.y.troughUpMagLowerLimit && (yArray[4] / yArray[2]) <= params.y.troughDownMagUpperLimit && (yArray[4] / yArray[2]) >= params.y.troughDownMagLowerLimit){
-  //         console.log("Y Trough with amplitude found.");
-  //       }
-      }
-  //   }
-  // }
 
   if (zArray.length === 5){
     if(zArray[2] <= params.z.peakUpperLimit && zArray[2] >=  params.z.peakLowerLimit){
@@ -59,6 +33,7 @@ Bangle.on('accel', function(obj) {
           if(zPeakArray.length === 2){
             if((zPeakArray[1] - zPeakArray[0]) <= params.z.timeBetweenPeaksUpperLimit && (zPeakArray[1] - zPeakArray[0]) >= params.z.timeBetweenPeaksLowerLimit){
               console.log("Valid step.");
+              steps += 2;
             }
           }
         }
@@ -74,8 +49,10 @@ Bangle.on('accel', function(obj) {
             zTroughArray.shift();
           }
           if(zTroughArray.length === 2){
+            //console.log(zTroughArray);
             if((zTroughArray[1] - zTroughArray[0]) <= params.z.timeBetweenTroughsUpperLimit && (zTroughArray[1] - zTroughArray[0]) >= params.z.timeBetweenTroughsLowerLimit){
               console.log("Valid step.");
+              steps += 2;
             }
           }
         }
@@ -83,3 +60,5 @@ Bangle.on('accel', function(obj) {
     }
   }
 });
+
+Bangle.on("touch", (btn) => {console.log(steps);});

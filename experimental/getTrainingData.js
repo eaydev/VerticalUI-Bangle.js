@@ -1,7 +1,8 @@
 // This program gets the parameter for arm swing. Whereby, the z and y data usually represent a sin wave.
 // The arm has a cyclical motion when walking normally.
 // This aims to discover threshold characteristic y and z values for arm movement during walks.
-// This should get more accuarte the bigger the data sample.
+// Thoeretically, should get more accuarte the bigger the data sample.
+
 const fs = require('fs')
 const { promisify } = require('util')
 const readFile = promisify(fs.readFile);
@@ -133,6 +134,9 @@ function getParameterData(data){
   timeBetweenPeaksUpperLimit = data.timeBetweenPeaksMean + data.timeBetweenPeaksSD;
   timeBetweenPeaksLowerLimit = data.timeBetweenPeaksMean - data.timeBetweenPeaksSD;
 
+  timeBetweenTroughsUpperLimit = data.timeBetweenTroughsMean + data.timeBetweenTroughsSD;
+  timeBetweenTroughsLowerLimit = data.timeBetweenTroughsMean - data.timeBetweenTroughsSD;
+
   peakUpperLimit = data.peakMean + data.peakSD;
   peakLowerLimit = data.peakMean - data.peakSD;
   troughUpperLimit = data.troughMean + data.troughSD;
@@ -151,6 +155,8 @@ function getParameterData(data){
   return {
     timeBetweenPeaksUpperLimit : timeBetweenPeaksUpperLimit,
     timeBetweenPeaksLowerLimit : timeBetweenPeaksLowerLimit,
+    timeBetweenTroughsUpperLimit : timeBetweenTroughsUpperLimit,
+    timeBetweenTroughsLowerLimit : timeBetweenTroughsLowerLimit,
 
     peakUpperLimit: peakUpperLimit,
     peakLowerLimit: peakLowerLimit,
